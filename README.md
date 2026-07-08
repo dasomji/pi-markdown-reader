@@ -6,9 +6,13 @@ Instead of sampling long Markdown files with brittle line ranges, agents can ins
 
 ## Install
 
+Install the published npm package:
+
 ```bash
 pi install npm:@wienerberliner/pi-markdown-reader
 ```
+
+Package: [`@wienerberliner/pi-markdown-reader`](https://www.npmjs.com/package/@wienerberliner/pi-markdown-reader)
 
 Then restart Pi or run `/reload`.
 
