@@ -1,0 +1,12 @@
+{
+  "packages": [
+    {
+      "source": "npm:@wienerberliner/pi-markdown-reader",
+      "extensions": [],
+      "skills": [],
+      "prompts": [],
+      "themes": []
+    },
+    ".."
+  ]
+}

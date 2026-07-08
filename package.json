@@ -1,0 +1,48 @@
+{
+  "name": "@wienerberliner/pi-markdown-reader",
+  "version": "0.1.0",
+  "description": "Pi extension tools for deterministic, structure-aware Markdown outline and section reading.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Daniel",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "markdown",
+    "markdown-reader"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dasomji/pi-markdown-reader.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dasomji/pi-markdown-reader/issues"
+  },
+  "homepage": "https://github.com/dasomji/pi-markdown-reader#readme",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typebox": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
