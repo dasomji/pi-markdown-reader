@@ -85,6 +85,12 @@ npm run typecheck
 
 For local Pi development in this repository, trust the project and reload Pi. The project `.pi/settings.json` shadows the published npm package and loads the local checkout.
 
+## Publishing
+
+Pushing a commit to `main` with a new `package.json` version automatically publishes that version to npm. If the version is already published, the workflow skips `npm publish`.
+
+The workflow uses npm Trusted Publishing, so npm package settings must allow GitHub Actions for `dasomji/pi-markdown-reader` and workflow `publish.yml`.
+
 ## License
 
 MIT
