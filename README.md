@@ -20,21 +20,32 @@ Then restart Pi or run `/reload`.
 
 ### `markdown_outline`
 
-Returns a flat, source-ordered table of contents for a Markdown file:
+Returns a flat, source-ordered table of contents for a Markdown file.
 
-- heading level and title
+By default the output is intentionally compact:
+
+- heading `level`
 - hierarchical `pathSlug`
-- `startLine`, `endLine`, and `lineCount`
-- optional frontmatter metadata (`pathSlug`, keys, line span)
+- optional frontmatter entry as `{ "level": 0, "pathSlug": "frontmatter" }`
 
 Example:
 
 ```json
 {
-  "path": "report.md",
-  "includeFrontmatter": true
+  "path": "report.md"
 }
 ```
+
+Use verbose mode when the agent needs line numbers for other tools:
+
+```json
+{
+  "path": "report.md",
+  "verbose": true
+}
+```
+
+Verbose mode adds titles, frontmatter keys, `startLine`, `endLine`, `lineCount`, and `totalLines`.
 
 ### `markdown_read`
 

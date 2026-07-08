@@ -7,7 +7,7 @@ Location: `/home/dev/Development/pi-daniel/extensions/pi-markdown-reader`
 
 Build a Pi extension that gives agents deterministic, structure-aware tools for reading Markdown documents by heading instead of by brittle fixed line ranges.
 
-The core idea: treat long Markdown reports like academic papers. Agents should first inspect an outline/table of contents with line spans, then read only the relevant sections such as `Abstract`, `Results`, `Problems encountered`, or `Evidence`.
+The core idea: treat long Markdown reports like academic papers. Agents should first inspect a compact outline/table of contents, then read only the relevant sections such as `Abstract`, `Results`, `Problems encountered`, or `Evidence`. Agents can request verbose outline metadata with line spans only when they need to use other line-oriented tools.
 
 ## Motivation / evidence
 
@@ -108,7 +108,7 @@ Keep dependencies minimal. A Markdown parser is optional; heading extraction can
 
 ### 1. `markdown_outline`
 
-Return a deterministic table of contents for a Markdown file. The outline should stay compact: it tells the agent each heading's level, path slug, source-order position, and full section line span. The line span tells the agent how much content `markdown_read` would attempt to return for that `pathSlug`, and where to use line-bounded shell tools if needed.
+Return a deterministic table of contents for a Markdown file. The default outline should stay compact: it tells the agent each heading's level and path slug in source order so it can choose a `pathSlug` and call `markdown_read`. A `verbose` option returns titles, frontmatter keys, line spans, and total line count for cases where the agent wants to use other line-oriented tools against the Markdown file.
 
 Input:
 
@@ -117,10 +117,27 @@ Input:
   path: string;
   maxDepth?: number;            // default: 6
   includeFrontmatter?: boolean; // default: true
+  verbose?: boolean;            // default: false
 }
 ```
 
-Output shape:
+Default output shape:
+
+```ts
+{
+  path: string;
+  frontmatter?: {
+    level: 0;
+    pathSlug: "frontmatter";
+  };
+  headings: Array<{
+    level: number;      // number of # characters in the heading marker
+    pathSlug: string;   // hierarchical slug, e.g. "results/latency"
+  }>;
+}
+```
+
+Verbose output shape (`verbose: true`):
 
 ```ts
 {
@@ -135,12 +152,12 @@ Output shape:
   };
   totalLines: number;
   headings: Array<{
-    level: number;      // number of # characters in the heading marker
+    level: number;
     title: string;
-    pathSlug: string;   // hierarchical slug, e.g. "results/latency"
-    startLine: number;  // 1-indexed line where the heading starts
-    endLine: number;    // 1-indexed inclusive line where this full section ends
-    lineCount: number;  // number of lines markdown_read would attempt to return
+    pathSlug: string;
+    startLine: number;
+    endLine: number;
+    lineCount: number;
   }>;
 }
 ```
@@ -150,11 +167,12 @@ Behavior:
 - Parse ATX headings (`#`, `##`, etc.).
 - Ignore headings inside fenced code blocks.
 - `level` is exactly the count of leading `#` characters.
-- Include `startLine`, `endLine`, and `lineCount` for each heading so agents can see how much content a `markdown_read` call would return and can use line-bounded shell tools if needed.
-- A heading's `endLine` is the line before the next heading of the same or higher level, or EOF for the final section. Descendant subsections are part of the section span.
+- By default, return only `level` and `pathSlug` for headings to avoid bloating the main outline/read workflow.
+- In verbose mode, include `startLine`, `endLine`, and `lineCount` for each heading so agents can see how much content a `markdown_read` call would return and can use line-bounded shell tools if needed.
+- In verbose mode, a heading's `endLine` is the line before the next heading of the same or higher level, or EOF for the final section. Descendant subsections are part of the section span.
 - Generate deterministic hierarchical `pathSlug` values, with duplicate suffixes scoped to siblings (`results/summary`, `proposal/summary`, `results/summary-1`, etc.).
 - Preserve document order in the returned `headings` array. The outline should be a flat pre-order traversal of the Markdown document, for example `abstract`, `abstract/bla`, `abstract/blabla`, `findings`, `findings/bla`, `findings/blubb`.
-- Include frontmatter metadata if present: a reserved `pathSlug` of `frontmatter`, top-level keys, and line span metadata. Do not parse or return per-key JSON values in the outline.
+- Include compact frontmatter metadata by default if present: `level: 0` and reserved `pathSlug: "frontmatter"`. In verbose mode, also include top-level keys and line span metadata. Do not parse or return per-key JSON values in the outline.
 - Reserve the top-level `frontmatter` path slug when a file has frontmatter; if the document also has a heading named `Frontmatter`, that heading should receive a duplicate suffix such as `frontmatter-1`.
 
 ### 2. `markdown_read`
@@ -348,20 +366,21 @@ Follow Pi extension docs:
 
 Minimum tests:
 
-1. Extract headings, heading levels, heading `startLine`, `endLine`, `lineCount`, and document `totalLines` from a simple Markdown file.
-2. Ignore headings inside fenced code blocks.
-3. Handle duplicate headings with deterministic path slugs.
-4. Preserve source heading order in the flat outline output.
-5. Read one requested section via a one-item `sections` array containing a required `pathSlug`.
-6. Read multiple requested sections via the same `sections` array.
-7. Always include subsections until the next same-or-higher-level heading.
-8. Return a clear not-found error for unknown `pathSlug` values.
-9. Return plain Markdown text from `markdown_read` content, with metadata only in `details`.
-10. Enforce hard output truncation if needed and return `nextLine` in details.
-11. Strip leading `@` from paths.
-12. Expose frontmatter metadata in `markdown_outline`, including reserved `pathSlug`, keys, and line span.
-13. Read the complete frontmatter block via `markdown_read` using `pathSlug: "frontmatter"`.
-14. Handle frontmatter without confusing heading line numbers.
+1. Return compact `markdown_outline` output by default with only `level` and `pathSlug` for headings.
+2. Return verbose `markdown_outline` output when requested, including headings, titles, `startLine`, `endLine`, `lineCount`, and document `totalLines`.
+3. Ignore headings inside fenced code blocks.
+4. Handle duplicate headings with deterministic path slugs.
+5. Preserve source heading order in the flat outline output.
+6. Read one requested section via a one-item `sections` array containing a required `pathSlug`.
+7. Read multiple requested sections via the same `sections` array.
+8. Always include subsections until the next same-or-higher-level heading.
+9. Return a clear not-found error for unknown `pathSlug` values.
+10. Return plain Markdown text from `markdown_read` content, with metadata only in `details`.
+11. Enforce hard output truncation if needed and return `nextLine` in details.
+12. Strip leading `@` from paths.
+13. Expose compact frontmatter metadata in default `markdown_outline`, with keys and line span added in verbose mode.
+14. Read the complete frontmatter block via `markdown_read` using `pathSlug: "frontmatter"`.
+15. Handle frontmatter without confusing heading line numbers.
 
 Manual Pi acceptance test:
 
@@ -374,12 +393,12 @@ Manual Pi acceptance test:
 
 Each registered tool should have a short prompt snippet and explicit guideline. Example:
 
-- `markdown_outline`: “Extract a Markdown table of contents with heading levels, path slugs, line spans, and total line count.”
+- `markdown_outline`: “Extract a compact Markdown table of contents with heading levels and path slugs. Use `verbose: true` when line spans are needed for other tools.”
 - `markdown_read`: “Read one or more Markdown sections by exact path slug.”
 
 Prompt guidelines should name the tool explicitly:
 
-- “Use `markdown_outline` before reading long Markdown files or generated reports.”
+- “Use `markdown_outline` before reading long Markdown files or generated reports. Keep the default compact output unless you need `verbose: true` line metadata for other tools.”
 - “Use `markdown_read` to inspect specific headings by `pathSlug` instead of guessing line ranges with `read`, `head`, `tail`, or `sed`. Always pass requested headings in a `sections` array, even for one section.”
 
 ## Non-goals for v1

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { parseMarkdown } from "../src/markdown/parse.js";
 import { readSectionByPathSlug } from "../src/markdown/sections.js";
 import { readMarkdownText } from "../src/tools/fs.js";
+import { createMarkdownOutlineTool } from "../src/tools/markdown-outline.js";
 import { createMarkdownReadTool } from "../src/tools/markdown-read.js";
 
 const fixtureDir = join(import.meta.dirname, "fixtures");
@@ -86,6 +87,67 @@ describe("markdown parser", () => {
       "duplicate-1",
     ]);
     expect(parsed.headings[0]?.endLine).toBe(21);
+  });
+});
+
+describe("markdown outline tool", () => {
+  it("returns a compact level/pathSlug outline by default", async () => {
+    const tool = createMarkdownOutlineTool();
+    const result = await tool.execute(
+      "test-call",
+      { path: "test/fixtures/report.md" },
+      undefined,
+      undefined,
+      { cwd: process.cwd() },
+    );
+
+    const output = JSON.parse(result.content[0].text);
+    expect(output).toEqual({
+      path: "test/fixtures/report.md",
+      frontmatter: { level: 0, pathSlug: "frontmatter" },
+      headings: [
+        { level: 1, pathSlug: "abstract" },
+        { level: 2, pathSlug: "abstract/bla" },
+        { level: 2, pathSlug: "abstract/blabla" },
+        { level: 1, pathSlug: "findings" },
+        { level: 2, pathSlug: "findings/bla" },
+        { level: 2, pathSlug: "findings/blubb" },
+        { level: 1, pathSlug: "duplicate" },
+        { level: 1, pathSlug: "duplicate-1" },
+        { level: 2, pathSlug: "duplicate-1/duplicate" },
+        { level: 2, pathSlug: "duplicate-1/duplicate-1" },
+      ],
+    });
+  });
+
+  it("returns title, frontmatter keys, and line metadata in verbose mode", async () => {
+    const tool = createMarkdownOutlineTool();
+    const result = await tool.execute(
+      "test-call",
+      { path: "test/fixtures/report.md", verbose: true },
+      undefined,
+      undefined,
+      { cwd: process.cwd() },
+    );
+
+    const output = JSON.parse(result.content[0].text);
+    expect(output.title).toBe("Abstract");
+    expect(output.totalLines).toBe(48);
+    expect(output.frontmatter).toEqual({
+      pathSlug: "frontmatter",
+      keys: ["title", "tags"],
+      startLine: 1,
+      endLine: 5,
+      lineCount: 5,
+    });
+    expect(output.headings[0]).toEqual({
+      level: 1,
+      title: "Abstract",
+      pathSlug: "abstract",
+      startLine: 6,
+      endLine: 21,
+      lineCount: 16,
+    });
   });
 });
 
