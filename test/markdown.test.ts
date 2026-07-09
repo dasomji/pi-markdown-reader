@@ -215,4 +215,22 @@ describe("markdown section reads", () => {
     expect(result.content).toEqual([{ type: "text", text: "## Blubb\n\nFinding blubb.\n" }]);
     expect(result.details.sections[0].heading.pathSlug).toBe("findings/blubb");
   });
+
+  it("does not duplicate a subsection already included by a requested ancestor", async () => {
+    const tool = createMarkdownReadTool();
+    const result = await tool.execute(
+      "test-call",
+      {
+        path: "test/fixtures/report.md",
+        sections: [{ pathSlug: "findings" }, { pathSlug: "findings/blubb" }],
+      },
+      undefined,
+      undefined,
+      { cwd: process.cwd() },
+    );
+
+    const text = result.content[0].text;
+    expect(text.match(/Finding blubb\./g)).toHaveLength(1);
+    expect(result.details.sections.map((section) => section.heading.pathSlug)).toEqual(["findings"]);
+  });
 });

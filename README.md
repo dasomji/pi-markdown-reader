@@ -51,6 +51,8 @@ Verbose mode adds titles, frontmatter keys, `startLine`, `endLine`, `lineCount`,
 
 Reads one or more complete Markdown sections by exact `pathSlug`.
 
+If a request includes both a heading and one of its descendant subheadings, `markdown_read` returns the ancestor content once and omits the redundant descendant selection.
+
 The LLM-facing result is plain Markdown text. Metadata stays in tool details.
 
 Example:
