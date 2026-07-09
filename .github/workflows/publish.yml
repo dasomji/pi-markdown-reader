@@ -16,9 +16,14 @@ permissions:
   contents: read
   id-token: write
 
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
 
@@ -27,6 +32,11 @@ jobs:
           node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
+
+      - name: Print tool versions
+        run: |
+          node --version
+          npm --version
 
       - run: npm ci
       - run: npm run typecheck --if-present
@@ -53,4 +63,28 @@ jobs:
 
       - name: Publish to npm
         if: steps.version.outputs.published == 'false'
-        run: npm publish --access public
+        shell: bash
+        run: |
+          set -euo pipefail
+          PACKAGE_NAME="${{ steps.version.outputs.package_name }}"
+          PACKAGE_VERSION="${{ steps.version.outputs.package_version }}"
+
+          for attempt in 1 2 3; do
+            echo "npm publish attempt $attempt for $PACKAGE_NAME@$PACKAGE_VERSION"
+            if npm publish --access public --verbose; then
+              exit 0
+            fi
+
+            if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version >/dev/null 2>&1; then
+              echo "$PACKAGE_NAME@$PACKAGE_VERSION is now published despite npm publish returning a non-zero exit code."
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "npm publish failed; retrying in 20 seconds."
+              sleep 20
+            fi
+          done
+
+          echo "npm publish failed after 3 attempts."
+          exit 1
