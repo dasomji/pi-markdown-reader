@@ -77,10 +77,6 @@ If a document has YAML frontmatter, it can be read with:
 
 Indexes a directory of Markdown files without reading full bodies. Useful for folders of reports, notes, and generated artifacts.
 
-## Bundled skill
-
-This package also includes the `markdown-report-reading` skill. It teaches agents an outline-first workflow for long Markdown reports and directories: index or outline first, select exact `pathSlug` values, then read complete sections with `markdown_read` instead of guessing line ranges.
-
 ## Development
 
 ```bash

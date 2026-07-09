@@ -25,10 +25,7 @@ export function createMarkdownReadTool() {
     label: "Markdown Read",
     description: "Read one or more complete Markdown sections by exact pathSlug. Each section includes descendant subsections and is hard-truncated only for output safety.",
     promptSnippet: "Read one or more Markdown sections by exact path slug.",
-    promptGuidelines: [
-      "Use markdown_read to inspect specific headings by pathSlug instead of guessing line ranges with read, head, tail, or sed. Always pass requested headings in a sections array, even for one section.",
-      "markdown_read only accepts exact pathSlug selectors from markdown_outline; call a subsection's own pathSlug when you only need that subsection. If an ancestor and descendant are both requested, redundant descendant content is returned only once.",
-    ],
+    promptGuidelines: [],
     parameters: markdownReadParameters,
 
     async execute(_toolCallId: string, params: MarkdownReadParams, _signal: AbortSignal | undefined, _onUpdate: unknown, ctx: { cwd: string }) {

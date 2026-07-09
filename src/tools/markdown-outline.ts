@@ -23,7 +23,7 @@ export function createMarkdownOutlineTool() {
     description: "Extract a deterministic Markdown table of contents. By default returns only heading levels and path slugs; verbose mode adds titles, frontmatter keys, line spans, and total line count.",
     promptSnippet: "Extract a compact Markdown table of contents with heading levels and path slugs.",
     promptGuidelines: [
-      "Use markdown_outline before reading long Markdown files or generated reports. Keep the default compact output unless you need verbose line metadata for other tools.",
+      "When working with Markdown files or report directories, use markdown_index/markdown_outline first, then markdown_read with exact pathSlug values instead of raw line ranges.",
     ],
     parameters: markdownOutlineParameters,
 
