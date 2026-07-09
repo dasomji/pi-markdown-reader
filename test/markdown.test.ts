@@ -182,6 +182,10 @@ describe("markdown section reads", () => {
     expect(file.displayPath).toBe("test/fixtures/report.md");
   });
 
+  it("rejects non-Markdown file extensions", async () => {
+    await expect(readMarkdownText("test/fixtures/not-markdown.txt", process.cwd())).rejects.toThrow(/file extension must be \.md or \.markdown/);
+  });
+
   it("handles frontmatter without confusing line numbers", async () => {
     const parsed = await parseFixture("report.md");
     expect(parsed.headings[0]?.startLine).toBe(6);

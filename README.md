@@ -73,10 +73,6 @@ If a document has YAML frontmatter, it can be read with:
 { "pathSlug": "frontmatter" }
 ```
 
-### `markdown_index`
-
-Indexes a directory of Markdown files without reading full bodies. Useful for folders of reports, notes, and generated artifacts.
-
 ## Development
 
 ```bash
