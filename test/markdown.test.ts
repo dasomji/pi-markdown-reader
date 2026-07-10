@@ -77,17 +77,6 @@ describe("markdown parser", () => {
     expect(parsed.headings[0]?.pathSlug).toBe("frontmatter-1");
   });
 
-  it("respects maxDepth while keeping spans computed from the whole document", async () => {
-    const text = await readFile(join(fixtureDir, "report.md"), "utf8");
-    const parsed = parseMarkdown(text, { maxDepth: 1 });
-    expect(parsed.headings.map((heading) => heading.pathSlug)).toEqual([
-      "abstract",
-      "findings",
-      "duplicate",
-      "duplicate-1",
-    ]);
-    expect(parsed.headings[0]?.endLine).toBe(21);
-  });
 });
 
 describe("markdown outline tool", () => {

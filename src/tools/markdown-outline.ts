@@ -4,13 +4,11 @@ import { readMarkdownText } from "./fs.js";
 
 export const markdownOutlineParameters = Type.Object({
   path: Type.String({ description: "Markdown file path. A leading @ is ignored." }),
-  includeFrontmatter: Type.Optional(Type.Boolean({ description: "Include frontmatter as a reserved pathSlug when present. Defaults to true." })),
   verbose: Type.Optional(Type.Boolean({ description: "Include titles, frontmatter keys, line numbers, line counts, and totalLines for use with other line-oriented tools. Defaults to false." })),
 });
 
 export interface MarkdownOutlineParams {
   path: string;
-  includeFrontmatter?: boolean;
   verbose?: boolean;
 }
 
@@ -27,9 +25,7 @@ export function createMarkdownOutlineTool() {
 
     async execute(_toolCallId: string, params: MarkdownOutlineParams, _signal: AbortSignal | undefined, _onUpdate: unknown, ctx: { cwd: string }) {
       const file = await readMarkdownText(params.path, ctx.cwd);
-      const parsed = parseMarkdown(file.text, {
-        includeFrontmatter: params.includeFrontmatter,
-      });
+      const parsed = parseMarkdown(file.text);
 
       const output = params.verbose
         ? {

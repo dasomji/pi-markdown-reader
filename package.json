@@ -1,6 +1,6 @@
 {
   "name": "@wienerberliner/pi-markdown-reader",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Pi extension tools for deterministic, structure-aware Markdown outline and section reading.",
   "type": "module",
   "license": "MIT",

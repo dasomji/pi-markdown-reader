@@ -9,11 +9,6 @@ interface RawHeading {
   pathSlug: string;
 }
 
-interface ParseOptions {
-  maxDepth?: number;
-  includeFrontmatter?: boolean;
-}
-
 export function splitMarkdownLines(text: string): string[] {
   const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   if (normalized.length === 0) return [];
@@ -21,18 +16,16 @@ export function splitMarkdownLines(text: string): string[] {
   return withoutFinalNewline.split("\n");
 }
 
-export function parseMarkdown(text: string, options: ParseOptions = {}): ParsedMarkdown {
-  const maxDepth = options.maxDepth ?? 6;
-  const includeFrontmatter = options.includeFrontmatter ?? true;
+export function parseMarkdown(text: string): ParsedMarkdown {
   const lines = splitMarkdownLines(text);
   const frontmatter = findFrontmatter(lines);
   const rawHeadings = scanHeadings(lines, frontmatter?.endLine ?? 0, Boolean(frontmatter));
-  const headings = computeHeadingSpans(rawHeadings, lines.length).filter((heading) => heading.level <= maxDepth);
+  const headings = computeHeadingSpans(rawHeadings, lines.length);
   const firstH1 = rawHeadings.find((heading) => heading.level === 1);
 
   return {
     title: firstH1?.title,
-    frontmatter: includeFrontmatter ? frontmatter : undefined,
+    frontmatter,
     frontmatterKeys: frontmatter?.keys,
     totalLines: lines.length,
     lines,
